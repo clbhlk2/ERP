@@ -25,6 +25,24 @@ import {
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts"
+
+// Yeni modüller ekle
 const menuItems = [
   { icon: Home, label: "Dashboard", id: "dashboard" },
   { icon: Building2, label: "Projeler", id: "projects" },
@@ -713,7 +731,9 @@ export default function Component() {
     </div>
   )
 
-  // Günlük Puantaj Sistemi
+  // Yeni modül içeriklerini ekle (AttendanceContent'ten sonra)
+
+  // 1. Günlük Puantaj Sistemi
   const DailyAttendanceContent = () => {
     const [activeTab, setActiveTab] = useState("company")
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
@@ -1115,7 +1135,7 @@ export default function Component() {
     )
   }
 
-  // Dinamik Fatura Formu
+  // 2. Dinamik Fatura Formu
   const CreateInvoiceContent = () => {
     const [invoiceData, setInvoiceData] = useState({
       // Şirket Bilgileri
@@ -1567,103 +1587,176 @@ export default function Component() {
                                 step="0.01"
                                 value={item.unitPrice}
                                 onChange={(e) => updateItem(item.id, 'unitPrice', Number.parseFloat(e.target.value) || 0)}
-                              />
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium">Toplam</label>
-                              <Input
-                                value={`₺${item.total.toFixed(2)}`}
-                                disabled
-                                className="bg-gray-50"
-                              />
-                            </div>
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium">Toplam</label>
+                            <Input
+                              value={`₺${item.total.toFixed(2)}`}
+                              disabled
+                              className="bg-gray-50"
+                            />
                           </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Notlar ve Koşullar */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Notlar ve Koşullar</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <input
-                        type="checkbox"
-                        id="showNotes"
-                        checked={invoiceData.showNotes}
-                        onChange={(e) => setInvoiceData({ ...invoiceData, showNotes: e.target.checked })}
-                      />
-                      <label htmlFor="showNotes" className="text-sm font-medium">Notlar</label>
                     </div>
-                    <textarea
-                      value={invoiceData.notes}
-                      onChange={(e) => setInvoiceData({ ...invoiceData, notes: e.target.value })}
-                      className="w-full p-2 border rounded"
-                      rows={3}
-                      placeholder="Fatura notları..."
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Notlar ve Koşullar */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Notlar ve Koşullar</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <input
+                      type="checkbox"
+                      id="showNotes"
+                      checked={invoiceData.showNotes}
+                      onChange={(e) => setInvoiceData({ ...invoiceData, showNotes: e.target.checked })}
                     />
+                    <label htmlFor="showNotes" className="text-sm font-medium">Notlar</label>
                   </div>
+                  <textarea
+                    value={invoiceData.notes}
+                    onChange={(e) => setInvoiceData({ ...invoiceData, notes: e.target.value })}
+                    className="w-full p-2 border rounded"
+                    rows={3}
+                    placeholder="Fatura notları..."
+                  />
+                </div>
 
-                  <div>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <input
-                        type="checkbox"
-                        id="showPaymentTerms"
-                        checked={invoiceData.showPaymentTerms}
-                        onChange={(e) => setInvoiceData({ ...invoiceData, showPaymentTerms: e.target.checked })}
-                      />
-                      <label htmlFor="showPaymentTerms" className="text-sm font-medium">Ödeme Koşulları</label>
-                    </div>
-                    <textarea
-                      value={invoiceData.paymentTerms}
-                      onChange={(e) => setInvoiceData({ ...invoiceData, paymentTerms: e.target.value })}
-                      className="w-full p-2 border rounded"
-                      rows={2}
-                      placeholder="Ödeme koşulları..."
+                <div>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <input
+                      type="checkbox"
+                      id="showPaymentTerms"
+                      checked={invoiceData.showPaymentTerms}
+                      onChange={(e) => setInvoiceData({ ...invoiceData, showPaymentTerms: e.target.checked })}
                     />
+                    <label htmlFor="showPaymentTerms" className="text-sm font-medium">Ödeme Koşulları</label>
                   </div>
-                </CardContent>
-              </Card>
+                  <textarea
+                    value={invoiceData.paymentTerms}
+                    onChange={(e) => setInvoiceData({ ...invoiceData, paymentTerms: e.target.value })}
+                    className="w-full p-2 border rounded"
+                    rows={2}
+                    placeholder="Ödeme koşulları..."
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Toplam Özeti */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Fatura Özeti</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Ara Toplam:</span>
-                      <span>₺{calculateTotals().subtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>KDV:</span>
-                      <span>₺{calculateTotals().vatAmount.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between font-bold text-lg border-t pt-2">
-                      <span>Genel Toplam:</span>
-                      <span>₺{calculateTotals().total.toFixed(2)}</span>
-                    </div>
+            {/* Toplam Özeti */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Fatura Özeti</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Ara Toplam:</span>
+                    <span>₺{calculateTotals().subtotal.toFixed(2)}</span>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                  <div className="flex justify-between">
+                    <span>KDV:</span>
+                    <span>₺{calculateTotals().vatAmount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-lg border-t pt-2">
+                    <span>Genel Toplam:</span>
+                    <span>₺{calculateTotals().total.toFixed(2)}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        ) : (
-          /* Önizleme Modu */
-          <div className="bg-gray-100 p-4">
-            <InvoicePreview />
+        </div>
+      ) : (
+        /* Önizleme Modu */
+        <div className="bg-gray-100 p-4">
+          <InvoicePreview />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// 3. Dinamik Hakediş Formu
+const CreateHakedisContent = () => (
+  <div>
+    <h2>Hakediş Oluştur</h2>
+    {/* Hakediş oluşturma form elemanları buraya gelecek */}
+  </div>
+)
+
+// 4. Belge Yönetimi
+const DocumentManagementContent = () => (
+  <div>
+    <h2>Belge Yönetimi</h2>
+    {/* Belge yönetimi ile ilgili elemanlar buraya gelecek */}
+  </div>
+)
+
+// Import yeni componentleri ekle
+import { CreateHakedisContent } from "../components/create-hakedis-content"
+import { DocumentManagementContent } from "../components/document-management-content"
+
+// renderContent fonksiyonuna yeni case'leri ekle
+const renderContent = () => {
+  switch (activeModule) {
+    case "dashboard":
+      return <DashboardContent />
+    case "projects":
+      return <ProjectsContent />
+    case "hakedis":
+      return <HakedisContent />
+    case "contractors":
+      return <ContractorsContent />
+    case "attendance":
+      return <AttendanceContent />
+    case "customers":
+      return <CustomersContent />
+    case "inventory":
+      return <InventoryContent />
+    case "invoices":
+      return <InvoicesContent />
+    case "requests":
+      return <RequestsContent />
+    case "cash":
+      return <CashContent />
+    case "bank":
+      return <BankContent />
+    case "checks":
+      return <ChecksContent />
+    case "accounting":
+      return <AccountingContent />
+    case "assets":
+      return <AssetsContent />
+    case "reports":
+      return <ReportsContent />
+    case "daily-attendance":
+      return <DailyAttendanceContent />
+    case "create-invoice":
+      return <CreateInvoiceContent />
+    case "create-hakedis":
+      return <CreateHakedisContent />
+    case "document-management":
+      return <DocumentManagementContent />
+    default:
+      return (
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <h3 className="text-lg font-medium">Bu modül henüz geliştirilmekte</h3>
+            <p className="text-muted-foreground">Yakında kullanıma sunulacak</p>
           </div>
-        )}
-      </div>
-    )
+        </div>
+      )
   }
+}
 
   // Cari Hesap Modülü
   const CustomersContent = () => (
@@ -2635,7 +2728,7 @@ export default function Component() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">KDV Borcu</CardTitle>
+            <CardTitle className="text-sm font-medium">KDV Borcu</CardHeader>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">₺95,400</div>
@@ -2755,7 +2848,7 @@ export default function Component() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Toplam Kıymet</CardTitle>
+            <CardTitle className="text-sm font-medium">Toplam Kıymet</CardHeader>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">₺8.5M</div>
@@ -3029,4 +3122,759 @@ export default function Component() {
             status: "Ödendi",
           },
           {
-            no: "ALI-2\
+            no: "ALI-2024-045",
+            customer: "XYZ Malzeme",
+            amount: 89500,
+            date: "2024-11-14",
+            type: "Alış",
+            status: "Bekliyor",
+          },
+          {
+            no: "SAT-2024-002",
+            customer: "Kaya Yapı",
+            amount: 156000,
+            date: "2024-11-13",
+            type: "Satış",
+            status: "Vadeli",
+          },
+          {
+            no: "ALI-2024-046",
+            customer: "Demir Çelik",
+            amount: 75000,
+            date: "2024-11-12",
+            type: "Alış",
+            status: "Ödendi",
+          },
+        ],
+      },
+    }
+
+    // Grafik türleri
+    const chartTypes = [
+      { value: "bar", label: "Bar Grafik", icon: "📊" },
+      { value: "line", label: "Çizgi Grafik", icon: "📈" },
+      { value: "pie", label: "Pasta Grafik", icon: "🥧" },
+      { value: "area", label: "Alan Grafik", icon: "📉" },
+      { value: "table", label: "Tablo", icon: "📋" },
+    ]
+
+    const [selectedDataSource, setSelectedDataSource] = useState("projects")
+    const [selectedFields, setSelectedFields] = useState([])
+    const [chartType, setChartType] = useState("bar")
+    const [filters, setFilters] = useState({})
+    const [groupBy, setGroupBy] = useState("")
+    const [savedReports, setSavedReports] = useState([])
+    const [reportName, setReportName] = useState("")
+    const [showPreview, setShowPreview] = useState(false)
+    const [activeTab, setActiveTab] = useState("summary") // Yeni state
+    const [summaryChartTypes, setSummaryChartTypes] = useState({
+      cashFlow: "line",
+      receivables: "pie",
+      revenue: "bar",
+      projects: "area",
+    })
+
+    // Mali durum verileri
+    const financialData = {
+      summary: {
+        totalAssets: 15750000,
+        totalLiabilities: 8950000,
+        equity: 6800000,
+        cashAndBank: 2820450,
+        receivables: 1200000,
+        payables: 850000,
+        loans: 3200000,
+        monthlyRevenue: 1850000,
+        monthlyExpense: 1320000,
+        netProfit: 530000,
+      },
+      cashFlow: [
+        { month: "Ocak", income: 1650000, expense: 1200000, net: 450000 },
+        { month: "Şubat", income: 1750000, expense: 1250000, net: 500000 },
+        { month: "Mart", income: 1850000, expense: 1300000, net: 550000 },
+        { month: "Nisan", income: 1950000, expense: 1350000, net: 600000 },
+        { month: "Mayıs", income: 1800000, expense: 1280000, net: 520000 },
+        { month: "Haziran", income: 1900000, expense: 1320000, net: 580000 },
+        { month: "Temmuz", income: 2100000, expense: 1400000, net: 700000 },
+        { month: "Ağustos", income: 1950000, expense: 1350000, net: 600000 },
+        { month: "Eylül", income: 1850000, expense: 1300000, net: 550000 },
+        { month: "Ekim", income: 1750000, expense: 1250000, net: 500000 },
+        { month: "Kasım", income: 1850000, expense: 1320000, net: 530000 },
+      ],
+      receivablesBreakdown: [
+        { name: "0-30 Gün", value: 450000, color: "#10B981" },
+        { name: "31-60 Gün", value: 350000, color: "#F59E0B" },
+        { name: "61-90 Gün", value: 250000, color: "#EF4444" },
+        { name: "90+ Gün", value: 150000, color: "#DC2626" },
+      ],
+      projectProfitability: [
+        { name: "Konya Rezidans", budget: 850000, spent: 637500, profit: 212500, margin: 25 },
+        { name: "Ankara Plaza", budget: 1200000, spent: 660000, profit: 540000, margin: 45 },
+        { name: "İstanbul Towers", budget: 2100000, spent: 1890000, profit: 210000, margin: 10 },
+        { name: "Bursa Sitesi", budget: 650000, spent: 195000, profit: 455000, margin: 70 },
+      ],
+      bankAccounts: [
+        { bank: "Ziraat Bankası", balance: 850000, type: "Vadesiz", rate: 0 },
+        { bank: "İş Bankası", balance: 1200000, type: "Vadeli", rate: 25 },
+        { bank: "Garanti BBVA", balance: 450000, type: "Vadesiz", rate: 0 },
+        { bank: "Akbank", balance: -320000, type: "Kredi", rate: 35 },
+      ],
+      upcomingPayments: [
+        { type: "Çek", amount: 125000, dueDate: "20.11.2024", days: 5 },
+        { type: "Senet", amount: 89500, dueDate: "25.11.2024", days: 10 },
+        { type: "Kredi Taksit", amount: 45000, dueDate: "30.11.2024", days: 15 },
+        { type: "Maaş", amount: 156000, dueDate: "01.12.2024", days: 16 },
+      ],
+    }
+
+    // Grafik türü değiştirme fonksiyonu
+    const toggleChartType = (chartKey, currentType) => {
+      const types = ["bar", "line", "pie", "area"]
+      const currentIndex = types.indexOf(currentType)
+      const nextIndex = (currentIndex + 1) % types.length
+      setSummaryChartTypes((prev) => ({
+        ...prev,
+        [chartKey]: types[nextIndex],
+      }))
+    }
+
+    // Mali Özet Sayfası
+    const FinancialSummary = () => (
+      <div className="space-y-6">
+        {/* Ana KPI Kartları */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium opacity-90">Toplam Varlık</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">₺{(financialData.summary.totalAssets / 1000000).toFixed(1)}M</div>
+              <p className="text-xs opacity-75">Aktif toplamı</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium opacity-90">Nakit + Banka</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">₺{(financialData.summary.cashAndBank / 1000000).toFixed(1)}M</div>
+              <p className="text-xs opacity-75">Likit varlıklar</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium opacity-90">Net Alacak</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ₺{((financialData.summary.receivables - financialData.summary.payables) / 1000).toFixed(0)}K
+              </div>
+              <p className="text-xs opacity-75">Alacak - Borç</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium opacity-90">Bu Ay Kar</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">₺{(financialData.summary.netProfit / 1000).toFixed(0)}K</div>
+              <p className="text-xs opacity-75">
+                %{((financialData.summary.netProfit / financialData.summary.monthlyRevenue) * 100).toFixed(1)} marj
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Detaylı Mali Durum */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Bilanço Özeti</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-3 bg-green-50 rounded">
+                  <span className="font-medium text-green-800">Toplam Varlık</span>
+                  <span className="font-bold text-green-800">
+                    ₺{(financialData.summary.totalAssets / 1000000).toFixed(1)}M
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-red-50 rounded">
+                  <span className="font-medium text-red-800">Toplam Borç</span>
+                  <span className="font-bold text-red-800">
+                    ₺{(financialData.summary.totalLiabilities / 1000000).toFixed(1)}M
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-blue-50 rounded">
+                  <span className="font-medium text-blue-800">Öz Sermaye</span>
+                  <span className="font-bold text-blue-800">
+                    ₺{(financialData.summary.equity / 1000000).toFixed(1)}M
+                  </span>
+                </div>
+                <div className="pt-2 border-t">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Borç/Varlık Oranı</span>
+                    <span className="font-medium">
+                      %{((financialData.summary.totalLiabilities / financialData.summary.totalAssets) * 100).toFixed(1)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Likidite Durumu</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Kasa</span>
+                  <span className="font-medium">₺125K</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Ziraat Bankası</span>
+                  <span className="font-medium">₺850K</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">İş Bankası</span>
+                  <span className="font-medium">₺1.2M</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Garanti BBVA</span>
+                  <span className="font-medium">₺450K</span>
+                </div>
+                <div className="flex justify-between items-center text-red-600">
+                  <span className="text-sm">Akbank (Kredi)</span>
+                  <span className="font-medium">-₺320K</span>
+                </div>
+                <div className="pt-2 border-t">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">Net Likidite</span>
+                    <span className="font-bold text-green-600">₺2.3M</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Yaklaşan Ödemeler</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {financialData.upcomingPayments.map((payment, index) => (
+                  <div key={index} className="flex justify-between items-center p-2 border rounded">
+                    <div>
+                      <p className="text-sm font-medium">{payment.type}</p>
+                      <p className="text-xs text-muted-foreground">{payment.dueDate}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">₺{(payment.amount / 1000).toFixed(0)}K</p>
+                      <p
+                        className={`text-xs ${payment.days <= 7 ? "text-red-600" : payment.days <= 15 ? "text-orange-600" : "text-green-600"}`}
+                      >
+                        {payment.days} gün
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Grafikler */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Nakit Akış Grafiği */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Aylık Nakit Akışı</CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => toggleChartType("cashFlow", summaryChartTypes.cashFlow)}
+                >
+                  {summaryChartTypes.cashFlow === "line"
+                    ? "📈"
+                    : summaryChartTypes.cashFlow === "bar"
+                      ? "📊"
+                      : summaryChartTypes.cashFlow === "area"
+                        ? "📉"
+                        : "🥧"}
+                </Button>
+              </div>
+              <CardDescription>Gelir, gider ve net kar trendi</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {summaryChartTypes.cashFlow === "line" && (
+                <LineChart width={500} height={300} data={financialData.cashFlow}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => `₺${(value / 1000).toFixed(0)}K`} />
+                  <Legend />
+                  <Line type="monotone" dataKey="income" stroke="#10B981" name="Gelir" />
+                  <Line type="monotone" dataKey="expense" stroke="#EF4444" name="Gider" />
+                  <Line type="monotone" dataKey="net" stroke="#3B82F6" name="Net Kar" strokeWidth={3} />
+                </LineChart>
+              )}
+              {summaryChartTypes.cashFlow === "bar" && (
+                <BarChart width={500} height={300} data={financialData.cashFlow}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => `₺${(value / 1000).toFixed(0)}K`} />
+                  <Legend />
+                  <Bar dataKey="income" fill="#10B981" name="Gelir" />
+                  <Bar dataKey="expense" fill="#EF4444" name="Gider" />
+                  <Bar dataKey="net" fill="#3B82F6" name="Net Kar" />
+                </BarChart>
+              )}
+              {summaryChartTypes.cashFlow === "area" && (
+                <AreaChart width={500} height={300} data={financialData.cashFlow}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => `₺${(value / 1000).toFixed(0)}K`} />
+                  <Legend />
+                  <Area
+                    type="monotone"
+                    dataKey="income"
+                    stackId="1"
+                    stroke="#10B981"
+                    fill="#10B981"
+                    fillOpacity={0.6}
+                    name="Gelir"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="expense"
+                    stackId="2"
+                    stroke="#EF4444"
+                    fill="#EF4444"
+                    fillOpacity={0.6}
+                    name="Gider"
+                  />
+                </AreaChart>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Alacak Yaşlandırma */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Alacak Yaşlandırma</CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => toggleChartType("receivables", summaryChartTypes.receivables)}
+                >
+                  {summaryChartTypes.receivables === "pie"
+                    ? "🥧"
+                    : summaryChartTypes.receivables === "bar"
+                      ? "📊"
+                      : "📈"}
+                </Button>
+              </div>
+              <CardDescription>Alacakların vade dağılımı</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {summaryChartTypes.receivables === "pie" && (
+                <PieChart width={500} height={300}>
+                  <Pie
+                    data={financialData.receivablesBreakdown}
+                    cx={250}
+                    cy={150}
+                    labelLine={false}
+                    label={({ name, value }) => `${name}: ₺${(value / 1000).toFixed(0)}K`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {financialData.receivablesBreakdown.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => `₺${(value / 1000).toFixed(0)}K`} />
+                </PieChart>
+              )}
+              {summaryChartTypes.receivables === "bar" && (
+                <BarChart width={500} height={300} data={financialData.receivablesBreakdown}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => `₺${(value / 1000).toFixed(0)}K`} />
+                  <Bar dataKey="value" fill="#3B82F6" />
+                </BarChart>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Proje Karlılık */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Proje Karlılık Analizi</CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => toggleChartType("projects", summaryChartTypes.projects)}
+                >
+                  {summaryChartTypes.projects === "bar" ? "📊" : summaryChartTypes.projects === "line" ? "📈" : "📉"}
+                </Button>
+              </div>
+              <CardDescription>Proje bazlı kar marjları</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {summaryChartTypes.projects === "bar" && (
+                <BarChart width={500} height={300} data={financialData.projectProfitability}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip
+                    formatter={(value, name) => [
+                      name === "margin" ? `%${value}` : `₺${(value / 1000).toFixed(0)}K`,
+                      name === "budget" ? "Bütçe" : name === "spent" ? "Harcanan" : name === "profit" ? "Kar" : "Marj",
+                    ]}
+                  />
+                  <Legend />
+                  <Bar dataKey="budget" fill="#94A3B8" name="Bütçe" />
+                  <Bar dataKey="spent" fill="#EF4444" name="Harcanan" />
+                  <Bar dataKey="profit" fill="#10B981" name="Kar" />
+                </BarChart>
+              )}
+              {summaryChartTypes.projects === "line" && (
+                <LineChart width={500} height={300} data={financialData.projectProfitability}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="margin" stroke="#3B82F6" name="Kar Marjı (%)" strokeWidth={3} />
+                </LineChart>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Finansal Oranlar */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Finansal Oranlar</CardTitle>
+              <CardDescription>Şirket performans göstergeleri</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-3 bg-blue-50 rounded">
+                  <div>
+                    <p className="font-medium text-blue-800">Cari Oran</p>
+                    <p className="text-xs text-blue-600">Dönen Varlık / Kısa Vadeli Borç</p>
+                  </div>
+                  <span className="text-xl font-bold text-blue-800">2.8</span>
+                </div>
+
+                <div className="flex justify-between items-center p-3 bg-green-50 rounded">
+                  <div>
+                    <p className="font-medium text-green-800">Asit-Test Oranı</p>
+                    <p className="text-xs text-green-600">Likit Varlık / Kısa Vadeli Borç</p>
+                  </div>
+                  <span className="text-xl font-bold text-green-800">2.1</span>
+                </div>
+
+                <div className="flex justify-between items-center p-3 bg-purple-50 rounded">
+                  <div>
+                    <p className="font-medium text-purple-800">Öz Sermaye Oranı</p>
+                    <p className="text-xs text-purple-600">Öz Sermaye / Toplam Varlık</p>
+                  </div>
+                  <span className="text-xl font-bold text-purple-800">%43.2</span>
+                </div>
+
+                <div className="flex justify-between items-center p-3 bg-orange-50 rounded">
+                  <div>
+                    <p className="font-medium text-orange-800">Net Kar Marjı</p>
+                    <p className="text-xs text-orange-600">Net Kar / Net Satış</p>
+                  </div>
+                  <span className="text-xl font-bold text-orange-800">%28.6</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Risk Analizi */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Risk Analizi ve Uyarılar</CardTitle>
+            <CardDescription>Dikkat edilmesi gereken finansal durumlar</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="p-4 border-l-4 border-red-500 bg-red-50">
+                <h4 className="font-medium text-red-800">Yüksek Risk</h4>
+                <ul className="mt-2 text-sm text-red-700 space-y-1">
+                  <li>• 90+ gün vadesi geçen alacak: ₺150K</li>
+                  <li>• 5 gün içinde ödenecek çek: ₺125K</li>
+                </ul>
+              </div>
+
+              <div className="p-4 border-l-4 border-yellow-500 bg-yellow-50">
+                <h4 className="font-medium text-yellow-800">Orta Risk</h4>
+                <ul className="mt-2 text-sm text-yellow-700 space-y-1">
+                  <li>• 61-90 gün vadeli alacak: ₺250K</li>
+                  <li>• Kredi kullanım oranı: %75</li>
+                </ul>
+              </div>
+
+              <div className="p-4 border-l-4 border-green-500 bg-green-50">
+                <h4 className="font-medium text-green-800">Düşük Risk</h4>
+                <ul className="mt-2 text-sm text-green-700 space-y-1">
+                  <li>• Güçlü nakit pozisyonu</li>
+                  <li>• Sağlıklı kar marjları</li>
+                  <li>• İyi likidite oranları</li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+
+    // Veri işleme fonksiyonu
+    const processData = () => {
+      if (!selectedDataSource || selectedFields.length === 0) return []
+
+      let data = dataSources[selectedDataSource].data
+
+      // Filtreleme
+      Object.keys(filters).forEach((key) => {
+        if (filters[key]) {
+          data = data.filter((item) => String(item[key]).toLowerCase().includes(String(filters[key]).toLowerCase()))
+        }
+      })
+
+      // Gruplama
+      if (groupBy) {
+        const grouped = data.reduce((acc, item) => {
+          const key = item[groupBy]
+          if (!acc[key]) acc[key] = []
+          acc[key].push(item)
+          return acc
+        }, {})
+
+        data = Object.keys(grouped).map((key) => ({
+          [groupBy]: key,
+          count: grouped[key].length,
+          ...selectedFields.reduce((acc, field) => {
+            if (field !== groupBy) {
+              const values = grouped[key].map((item) => item[field]).filter((v) => typeof v === "number")
+              acc[field] = values.length > 0 ? values.reduce((sum, val) => sum + val, 0) / values.length : 0
+            }
+            return acc
+          }, {}),
+        }))
+      }
+
+      return data
+    }
+
+    // Grafik render fonksiyonu
+    const renderChart = () => {
+      const data = processData()
+      if (data.length === 0) return <div className="text-center text-muted-foreground">Veri bulunamadı</div>
+
+      const chartProps = {
+        width: 800,
+        height: 400,
+        data: data,
+        margin: { top: 20, right: 30, left: 20, bottom: 5 },
+      }
+
+      switch (chartType) {
+        case "bar":
+          return (
+            <BarChart {...chartProps}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey={selectedFields[0]} />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              {selectedFields.slice(1).map((field, index) => (
+                <Bar key={field} dataKey={field} fill={`hsl(${index * 60}, 70%, 50%)`} />
+              ))}
+            </BarChart>
+          )
+        case "line":
+          return (
+            <LineChart {...chartProps}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey={selectedFields[0]} />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              {selectedFields.slice(1).map((field, index) => (
+                <Line key={field} type="monotone" dataKey={field} stroke={`hsl(${index * 60}, 70%, 50%)`} />
+              ))}
+            </LineChart>
+          )
+        case "pie":
+          return (
+            <PieChart width={800} height={400}>
+              <Pie
+                data={data}
+                cx={400}
+                cy={200}
+                labelLine={false}
+                label={({ name, value }) => `${name}: ${value}`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey={selectedFields[1]}
+                nameKey={selectedFields[0]}
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={`hsl(${index * 45}, 70%, 50%)`} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          )
+        case "area":
+          return (
+            <AreaChart {...chartProps}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey={selectedFields[0]} />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              {selectedFields.slice(1).map((field, index) => (
+                <Area
+                  key={field}
+                  type="monotone"
+                  dataKey={field}
+                  stackId="1"
+                  stroke={`hsl(${index * 60}, 70%, 50%)`}
+                  fill={`hsl(${index * 60}, 70%, 50%)`}
+                />
+              ))}
+            </AreaChart>
+          )
+        case "table":
+          return (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-gray-300">
+                <thead>
+                  <tr className="bg-gray-50">
+                    {selectedFields.map((field) => (
+                      <th key={field} className="border border-gray-300 px-4 py-2 text-left">
+                        {dataSources[selectedDataSource].fields.find((f) => f.key === field)?.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.map((row, index) => (
+                    <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      {selectedFields.map((field) => (
+                        <td key={field} className="border border-gray-300 px-4 py-2">
+                          {typeof row[field] === "number" &&
+                          dataSources[selectedDataSource].fields.find((f) => f.key === field)?.type === "currency"
+                            ? `₺${row[field].toLocaleString()}`
+                            : row[field]}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        default:
+          return <div>Grafik türü seçiniz</div>
+      }
+    }
+
+    // Tab sistemi için güncellenmiş return
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Raporlama ve Analiz</h2>
+            <p className="text-muted-foreground">Finansal durum ve dinamik raporlar</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowPreview(!showPreview)}>
+              {showPreview ? "Düzenleme" : "Önizleme"}
+            </Button>
+            <Button>
+              <FileBarChart className="mr-2 h-4 w-4" />
+              Raporu Kaydet
+            </Button>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex space-x-1 bg-muted p-1 rounded-lg w-fit">
+          <Button
+            variant={activeTab === "summary" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setActiveTab("summary")}
+          >
+            📊 Mali Özet
+          </Button>
+          <Button
+            variant={activeTab === "dynamic" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setActiveTab("dynamic")}
+          >
+            🎯 Dinamik Raporlar
+          </Button>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === "summary" ? (
+          <FinancialSummary />
+        ) : (
+          // Dinamik Raporlama İçeriği
+          <div className="space-y-6">
+            {!showPreview ? (
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* Sol Panel - Konfigürasyon */}
+                <div className="space-y-6">
+                  {/* Veri Kaynağı Seçimi */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>1. Veri Kaynağı</CardTitle>
+                      <CardDescription>Hangi verilerle çalışmak istiyorsunuz?</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-2">
+                        {Object.keys(dataSources).map((key) => (
+                          <Button
+                            key={key}
+                            variant={selectedDataSource === key ? "default" : "outline"}
+                            onClick={() => {
+                              setSelectedDataSource(key)
+                              setSelectedFields([])
+                              setFilters({})
+                              setGroupBy("")
+                            }}
+                            className="justify-start"
+                          >
+                            {dataSources[key].name}
+                          </Button>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Alan Seçimi */}
+                  {selectedDataSource && (
+                    <Card>
+                      <CardHeader>
+                        <\
