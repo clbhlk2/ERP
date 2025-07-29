@@ -11,6 +11,10 @@ import {
   FileText,
   Calendar,
   DollarSign,
+  Settings,
+  Bell,
+  Search,
+  Menu,
   Home,
   UserCheck,
   Calculator,
@@ -23,7 +27,16 @@ import {
   Building,
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 
 import {
   BarChart,
@@ -42,7 +55,6 @@ import {
   Legend,
 } from "recharts"
 
-// Yeni modüller ekle
 const menuItems = [
   { icon: Home, label: "Dashboard", id: "dashboard" },
   { icon: Building2, label: "Projeler", id: "projects" },
@@ -59,10 +71,6 @@ const menuItems = [
   { icon: Calculator, label: "Muhasebe", id: "accounting" },
   { icon: Building, label: "Sabit Kıymet", id: "assets" },
   { icon: FileBarChart, label: "Raporlar", id: "reports" },
-  { icon: UserCheck, label: "Günlük Puantaj", id: "daily-attendance" },
-  { icon: FileText, label: "Fatura Oluştur", id: "create-invoice" },
-  { icon: Receipt, label: "Hakediş Oluştur", id: "create-hakedis" },
-  { icon: FileText, label: "Belge Yönetimi", id: "document-management" },
 ]
 
 export default function Component() {
@@ -730,1033 +738,6 @@ export default function Component() {
       </div>
     </div>
   )
-
-  // Yeni modül içeriklerini ekle (AttendanceContent'ten sonra)
-
-  // 1. Günlük Puantaj Sistemi
-  const DailyAttendanceContent = () => {
-    const [activeTab, setActiveTab] = useState("company")
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
-    const [selectedProject, setSelectedProject] = useState("")
-    const [attendanceData, setAttendanceData] = useState([])
-
-    // Şirket personeli verileri
-    const companyEmployees = [
-      { id: 1, name: "Ahmet Yılmaz", position: "Şantiye Şefi", department: "Teknik", hourlyRate: 150 },
-      { id: 2, name: "Mehmet Kaya", position: "Mimar", department: "Teknik", hourlyRate: 120 },
-      { id: 3, name: "Fatma Demir", position: "Muhasebeci", department: "Mali İşler", hourlyRate: 100 },
-      { id: 4, name: "Ali Öz", position: "İnsan Kaynakları", department: "İdari", hourlyRate: 90 },
-    ]
-
-    // Taşeron personeli verileri
-    const contractorEmployees = [
-      { id: 1, name: "Hasan Çelik", contractor: "Mehmet İnşaat", specialty: "Kaba İnşaat", dailyRate: 800 },
-      { id: 2, name: "Osman Ak", contractor: "Mehmet İnşaat", specialty: "Kaba İnşaat", dailyRate: 750 },
-      { id: 3, name: "Ayşe Kara", contractor: "Yılmaz Yapı", specialty: "Temel İşleri", dailyRate: 700 },
-      { id: 4, name: "Mustafa Beyaz", contractor: "Demir İnşaat", specialty: "Çelik İşleri", dailyRate: 900 },
-    ]
-
-    const projects = [
-      { id: "konya", name: "Konya Rezidans" },
-      { id: "ankara", name: "Ankara Plaza" },
-      { id: "istanbul", name: "İstanbul Towers" },
-      { id: "bursa", name: "Bursa Sitesi" },
-    ]
-
-    const addAttendance = (employee, type) => {
-      const newEntry = {
-        id: Date.now(),
-        employeeId: employee.id,
-        employeeName: employee.name,
-        type: type, // 'company' or 'contractor'
-        date: selectedDate,
-        project: selectedProject,
-        startTime: "08:00",
-        endTime: "17:00",
-        breakTime: 60,
-        overtime: 0,
-        status: "present",
-        notes: "",
-        ...employee
-      }
-      setAttendanceData([...attendanceData, newEntry])
-    }
-
-    const updateAttendance = (id, field, value) => {
-      setAttendanceData(attendanceData.map(item =>
-        item.id === id ? { ...item, [field]: value } : item
-      ))
-    }
-
-    const calculateHours = (startTime, endTime, breakTime) => {
-      const start = new Date(`2000-01-01 ${startTime}`)
-      const end = new Date(`2000-01-01 ${endTime}`)
-      const diffMs = end - start
-      const diffHours = diffMs / (1000 * 60 * 60)
-      return Math.max(0, diffHours - (breakTime / 60))
-    }
-
-    const CompanyAttendanceTab = () => (
-      <div className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Şirket Personeli Listesi</CardTitle>
-              <CardDescription>Puantaj girmek için personel seçin</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {companyEmployees.map((employee) => (
-                  <div key={employee.id} className="flex items-center justify-between p-3 border rounded">
-                    <div>
-                      <p className="font-medium">{employee.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {employee.position} • {employee.department}
-                      </p>
-                      <p className="text-xs text-muted-foreground">₺{employee.hourlyRate}/saat</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={() => addAttendance(employee, 'company')}
-                      disabled={attendanceData.some(a => a.employeeId === employee.id && a.type === 'company' && a.date === selectedDate)}
-                    >
-                      {attendanceData.some(a => a.employeeId === employee.id && a.type === 'company' && a.date === selectedDate)
-                        ? "Eklendi" : "Puantaj Gir"}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Bugünkü Şirket Personeli Puantajı</CardTitle>
-              <CardDescription>{selectedDate} tarihli kayıtlar</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {attendanceData.filter(a => a.type === 'company' && a.date === selectedDate).map((attendance) => (
-                  <div key={attendance.id} className="p-3 border rounded">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="font-medium">{attendance.employeeName}</p>
-                      <Badge variant={attendance.status === 'present' ? 'default' : 'secondary'}>
-                        {attendance.status === 'present' ? 'Çalıştı' : 'Çalışmadı'}
-                      </Badge>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <label className="text-muted-foreground">Başlangıç</label>
-                        <Input
-                          type="time"
-                          value={attendance.startTime}
-                          onChange={(e) => updateAttendance(attendance.id, 'startTime', e.target.value)}
-                          className="h-8"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-muted-foreground">Bitiş</label>
-                        <Input
-                          type="time"
-                          value={attendance.endTime}
-                          onChange={(e) => updateAttendance(attendance.id, 'endTime', e.target.value)}
-                          className="h-8"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-muted-foreground">Mola (dk)</label>
-                        <Input
-                          type="number"
-                          value={attendance.breakTime}
-                          onChange={(e) => updateAttendance(attendance.id, 'breakTime', Number.parseInt(e.target.value))}
-                          className="h-8"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-muted-foreground">Mesai (saat)</label>
-                        <Input
-                          type="number"
-                          step="0.5"
-                          value={attendance.overtime}
-                          onChange={(e) => updateAttendance(attendance.id, 'overtime', Number.parseFloat(e.target.value))}
-                          className="h-8"
-                        />
-                      </div>
-                    </div>
-                    <div className="mt-2">
-                      <p className="text-sm">
-                        <span className="text-muted-foreground">Toplam Saat: </span> 
-                        <span className="font-medium">
-                          {calculateHours(attendance.startTime, attendance.endTime, attendance.breakTime) + attendance.overtime} saat
-                        </span>
-                      </p>
-                      <p className="text-sm">
-                        <span className="text-muted-foreground">Günlük Ücret: </span>
-                        <span className="font-medium text-green-600">
-                          ₺{((calculateHours(attendance.startTime, attendance.endTime, attendance.breakTime) + attendance.overtime) * attendance.hourlyRate).toFixed(2)}
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    )
-
-    const ContractorAttendanceTab = () => (
-      <div className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Taşeron Personeli Listesi</CardTitle>
-              <CardDescription>Puantaj girmek için personel seçin</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {contractorEmployees.map((employee) => (
-                  <div key={employee.id} className="flex items-center justify-between p-3 border rounded">
-                    <div>
-                      <p className="font-medium">{employee.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {employee.contractor} • {employee.specialty}
-                      </p>
-                      <p className="text-xs text-muted-foreground">₺{employee.dailyRate}/gün</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={() => addAttendance(employee, 'contractor')}
-                      disabled={attendanceData.some(a => a.employeeId === employee.id && a.type === 'contractor' && a.date === selectedDate)}
-                    >
-                      {attendanceData.some(a => a.employeeId === employee.id && a.type === 'contractor' && a.date === selectedDate)
-                        ? "Eklendi" : "Puantaj Gir"}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Bugünkü Taşeron Personeli Puantajı</CardTitle>
-              <CardDescription>{selectedDate} tarihli kayıtlar</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {attendanceData.filter(a => a.type === 'contractor' && a.date === selectedDate).map((attendance) => (
-                  <div key={attendance.id} className="p-3 border rounded">
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <p className="font-medium">{attendance.employeeName}</p>
-                        <p className="text-sm text-muted-foreground">{attendance.contractor}</p>
-                      </div>
-                      <Badge variant={attendance.status === 'present' ? 'default' : 'secondary'}>
-                        {attendance.status === 'present' ? 'Çalıştı' : 'Çalışmadı'}
-                      </Badge>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <label className="text-muted-foreground">Başlangıç</label>
-                        <Input
-                          type="time"
-                          value={attendance.startTime}
-                          onChange={(e) => updateAttendance(attendance.id, 'startTime', e.target.value)}
-                          className="h-8"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-muted-foreground">Bitiş</label>
-                        <Input
-                          type="time"
-                          value={attendance.endTime}
-                          onChange={(e) => updateAttendance(attendance.id, 'endTime', e.target.value)}
-                          className="h-8"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-muted-foreground">Mola (dk)</label>
-                        <Input
-                          type="number"
-                          value={attendance.breakTime}
-                          onChange={(e) => updateAttendance(attendance.id, 'breakTime', Number.parseInt(e.target.value))}
-                          className="h-8"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-muted-foreground">Mesai (saat)</label>
-                        <Input
-                          type="number"
-                          step="0.5"
-                          value={attendance.overtime}
-                          onChange={(e) => updateAttendance(attendance.id, 'overtime', Number.parseFloat(e.target.value))}
-                          className="h-8"
-                        />
-                      </div>
-                    </div>
-                    <div className="mt-2">
-                      <p className="text-sm">
-                        <span className="text-muted-foreground">Toplam Saat: </span>
-                        <span className="font-medium">
-                          {calculateHours(attendance.startTime, attendance.endTime, attendance.breakTime) + attendance.overtime} saat
-                        </span>
-                      </p>
-                      <p className="text-sm">
-                        <span className="text-muted-foreground">Günlük Ücret: </span>
-                        <span className="font-medium text-green-600">
-                          ₺{attendance.dailyRate}
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    )
-
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight">Günlük Puantaj Sistemi</h2>
-            <p className="text-muted-foreground">Şirket ve taşeron personeli puantaj girişi</p>
-          </div>
-          <div className="flex gap-2">
-            <Input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-40"
-            />
-            <select
-              value={selectedProject}
-              onChange={(e) => setSelectedProject(e.target.value)}
-              className="px-3 py-2 border rounded-md"
-            >
-              <option value="">Proje Seçin</option>
-              {projects.map(project => (
-                <option key={project.id} value={project.id}>{project.name}</option>
-              ))}
-            </select>
-            <Button>Kaydet</Button>
-          </div>
-        </div>
-
-        {/* Özet Kartları */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Bugün Çalışan Şirket Personeli</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {attendanceData.filter(a => a.type === 'company' && a.date === selectedDate && a.status === 'present').length}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {companyEmployees.length} toplam personel
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Bugün Çalışan Taşeron Personeli</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {attendanceData.filter(a => a.type === 'contractor' && a.date === selectedDate && a.status === 'present').length}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {contractorEmployees.length} toplam personel
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Toplam Çalışma Saati</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {attendanceData
-                  .filter(a => a.date === selectedDate && a.status === 'present')
-                  .reduce((total, a) => total + calculateHours(a.startTime, a.endTime, a.breakTime) + a.overtime, 0)
-                  .toFixed(1)}
-              </div>
-              <p className="text-xs text-muted-foreground">saat</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Günlük Toplam Maliyet</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                ₺{attendanceData
-                  .filter(a => a.date === selectedDate && a.status === 'present')
-                  .reduce((total, a) => {
-                    if (a.type === 'company') {
-                      return total + ((calculateHours(a.startTime, a.endTime, a.breakTime) + a.overtime) * a.hourlyRate)
-                    } else {
-                      return total + a.dailyRate
-                    }
-                  }, 0)
-                  .toFixed(2)}
-              </div>
-              <p className="text-xs text-muted-foreground">günlük maliyet</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="flex space-x-1 bg-muted p-1 rounded-lg w-fit">
-          <Button
-            variant={activeTab === "company" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setActiveTab("company")}
-          >
-            🏢 Şirket Personeli
-          </Button>
-          <Button
-            variant={activeTab === "contractor" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setActiveTab("contractor")}
-          >
-            👷 Taşeron Personeli
-          </Button>
-        </div>
-
-        {/* Tab Content */}
-        {activeTab === "company" ? <CompanyAttendanceTab /> : <ContractorAttendanceTab />}
-      </div>
-    )
-  }
-
-  // 2. Dinamik Fatura Formu
-  const CreateInvoiceContent = () => {
-    const [invoiceData, setInvoiceData] = useState({
-      // Şirket Bilgileri
-      companyName: "ABC İnşaat Ltd. Şti.",
-      companyAddress: "Atatürk Cad. No:123 Çankaya/ANKARA",
-      companyPhone: "0312 123 45 67",
-      companyEmail: "info@abcinsaat.com",
-      companyTaxNo: "1234567890",
-      companyTaxOffice: "Çankaya Vergi Dairesi",
-      companyLogo: null,
-
-      // Fatura Bilgileri
-      invoiceNo: "FAT-2024-001",
-      invoiceDate: new Date().toISOString().split('T')[0],
-      dueDate: "",
-      currency: "TRY",
-
-      // Müşteri Bilgileri
-      customerName: "",
-      customerAddress: "",
-      customerTaxNo: "",
-      customerTaxOffice: "",
-
-      // Fatura Kalemleri
-      items: [
-        { id: 1, description: "", quantity: 1, unit: "adet", unitPrice: 0, vatRate: 20, total: 0 }
-      ],
-
-      // Notlar
-      notes: "",
-      paymentTerms: "Fatura tarihinden itibaren 30 gün içinde ödenecektir.",
-
-      // Görünüm Ayarları
-      showLogo: true,
-      showNotes: true,
-      showPaymentTerms: true,
-      template: "modern" // modern, classic, minimal
-    })
-
-    const [previewMode, setPreviewMode] = useState(false)
-
-    const addItem = () => {
-      const newItem = {
-        id: Date.now(),
-        description: "",
-        quantity: 1,
-        unit: "adet",
-        unitPrice: 0,
-        vatRate: 20,
-        total: 0
-      }
-      setInvoiceData({
-        ...invoiceData,
-        items: [...invoiceData.items, newItem]
-      })
-    }
-
-    const updateItem = (id, field, value) => {
-      const updatedItems = invoiceData.items.map(item => {
-        if (item.id === id) {
-          const updatedItem = { ...item, [field]: value }
-          if (field === 'quantity' || field === 'unitPrice') {
-            updatedItem.total = updatedItem.quantity * updatedItem.unitPrice
-          }
-          return updatedItem
-        }
-        return item
-      })
-      setInvoiceData({ ...invoiceData, items: updatedItems })
-    }
-
-    const removeItem = (id) => {
-      setInvoiceData({
-        ...invoiceData,
-        items: invoiceData.items.filter(item => item.id !== id)
-      })
-    }
-
-    const calculateTotals = () => {
-      const subtotal = invoiceData.items.reduce((sum, item) => sum + item.total, 0)
-      const vatAmount = invoiceData.items.reduce((sum, item) => sum + (item.total * item.vatRate / 100), 0)
-      const total = subtotal + vatAmount
-      return { subtotal, vatAmount, total }
-    }
-
-    const handleLogoUpload = (event) => {
-      const file = event.target.files[0]
-      if (file) {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          setInvoiceData({ ...invoiceData, companyLogo: e.target.result })
-        }
-        reader.readAsDataURL(file)
-      }
-    }
-
-    const InvoicePreview = () => {
-      const { subtotal, vatAmount, total } = calculateTotals()
-
-      return (
-        <div className="bg-white p-8 shadow-lg" style={{ minHeight: '297mm' }}>
-          {/* Header */}
-          <div className="flex justify-between items-start mb-8">
-            <div className="flex items-center gap-4">
-              {invoiceData.showLogo && invoiceData.companyLogo && (
-                <img src={invoiceData.companyLogo || "/placeholder.svg"} alt="Logo" className="h-16 w-16 object-contain" />
-              )}
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800">{invoiceData.companyName}</h1>
-                <p className="text-sm text-gray-600">{invoiceData.companyAddress}</p>
-                <p className="text-sm text-gray-600">{invoiceData.companyPhone} • {invoiceData.companyEmail}</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <h2 className="text-3xl font-bold text-blue-600">FATURA</h2>
-              <p className="text-lg font-semibold">{invoiceData.invoiceNo}</p>
-              <p className="text-sm text-gray-600">Tarih: {invoiceData.invoiceDate}</p>
-              {invoiceData.dueDate && <p className="text-sm text-gray-600">Vade: {invoiceData.dueDate}</p>}
-            </div>
-          </div>
-
-          {/* Company & Customer Info */}
-          <div className="grid grid-cols-2 gap-8 mb-8">
-            <div>
-              <h3 className="font-semibold text-gray-800 mb-2">Fatura Eden:</h3>
-              <div className="text-sm text-gray-600">
-                <p>{invoiceData.companyName}</p>
-                <p>{invoiceData.companyAddress}</p>
-                <p>Vergi No: {invoiceData.companyTaxNo}</p>
-                <p>Vergi Dairesi: {invoiceData.companyTaxOffice}</p>
-              </div>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-800 mb-2">Fatura Edilen:</h3>
-              <div className="text-sm text-gray-600">
-                <p>{invoiceData.customerName}</p>
-                <p>{invoiceData.customerAddress}</p>
-                <p>Vergi No: {invoiceData.customerTaxNo}</p>
-                <p>Vergi Dairesi: {invoiceData.customerTaxOffice}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Items Table */}
-          <table className="w-full mb-8">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="text-left p-3 border">Açıklama</th>
-                <th className="text-center p-3 border">Miktar</th>
-                <th className="text-center p-3 border">Birim</th>
-                <th className="text-right p-3 border">Birim Fiyat</th>
-                <th className="text-center p-3 border">KDV %</th>
-                <th className="text-right p-3 border">Toplam</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invoiceData.items.map((item, index) => (
-                <tr key={item.id}>
-                  <td className="p-3 border">{item.description}</td>
-                  <td className="text-center p-3 border">{item.quantity}</td>
-                  <td className="text-center p-3 border">{item.unit}</td>
-                  <td className="text-right p-3 border">₺{item.unitPrice.toFixed(2)}</td>
-                  <td className="text-center p-3 border">{item.vatRate}%</td>
-                  <td className="text-right p-3 border">₺{item.total.toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Totals */}
-          <div className="flex justify-end mb-8">
-            <div className="w-64">
-              <div className="flex justify-between py-2">
-                <span>Ara Toplam:</span>
-                <span>₺{subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span>KDV:</span>
-                <span>₺{vatAmount.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between py-2 border-t-2 border-gray-300 font-bold text-lg">
-                <span>Genel Toplam:</span>
-                <span>₺{total.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Notes and Payment Terms */}
-          {invoiceData.showNotes && invoiceData.notes && (
-            <div className="mb-4">
-              <h4 className="font-semibold mb-2">Notlar:</h4>
-              <p className="text-sm text-gray-600">{invoiceData.notes}</p>
-            </div>
-          )}
-
-          {invoiceData.showPaymentTerms && invoiceData.paymentTerms && (
-            <div className="mb-4">
-              <h4 className="font-semibold mb-2">Ödeme Koşulları:</h4>
-              <p className="text-sm text-gray-600">{invoiceData.paymentTerms}</p>
-            </div>
-          )}
-        </div>
-      )
-    }
-
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight">Dinamik Fatura Oluştur</h2>
-            <p className="text-muted-foreground">Özelleştirilebilir fatura formu</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setPreviewMode(!previewMode)}>
-              {previewMode ? "Düzenle" : "Önizleme"}
-            </Button>
-            <Button>PDF İndir</Button>
-            <Button>Kaydet</Button>
-          </div>
-        </div>
-
-        {!previewMode ? (
-          <div className="grid gap-6 lg:grid-cols-2">
-            {/* Sol Panel - Form */}
-            <div className="space-y-6">
-              {/* Şirket Bilgileri */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Şirket Bilgileri</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <label className="text-sm font-medium">Şirket Logosu</label>
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleLogoUpload}
-                        className="mt-1"
-                      />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="showLogo"
-                        checked={invoiceData.showLogo}
-                        onChange={(e) => setInvoiceData({ ...invoiceData, showLogo: e.target.checked })}
-                      />
-                      <label htmlFor="showLogo" className="text-sm">Logo Göster</label>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium">Şirket Adı</label>
-                      <Input
-                        value={invoiceData.companyName}
-                        onChange={(e) => setInvoiceData({ ...invoiceData, companyName: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Telefon</label>
-                      <Input
-                        value={invoiceData.companyPhone}
-                        onChange={(e) => setInvoiceData({ ...invoiceData, companyPhone: e.target.value })}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">Adres</label>
-                    <Input
-                      value={invoiceData.companyAddress}
-                      onChange={(e) => setInvoiceData({ ...invoiceData, companyAddress: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium">Vergi No</label>
-                      <Input
-                        value={invoiceData.companyTaxNo}
-                        onChange={(e) => setInvoiceData({ ...invoiceData, companyTaxNo: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Vergi Dairesi</label>
-                      <Input
-                        value={invoiceData.companyTaxOffice}
-                        onChange={(e) => setInvoiceData({ ...invoiceData, companyTaxOffice: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Fatura Bilgileri */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Fatura Bilgileri</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <label className="text-sm font-medium">Fatura No</label>
-                      <Input
-                        value={invoiceData.invoiceNo}
-                        onChange={(e) => setInvoiceData({ ...invoiceData, invoiceNo: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Fatura Tarihi</label>
-                      <Input
-                        type="date"
-                        value={invoiceData.invoiceDate}
-                        onChange={(e) => setInvoiceData({ ...invoiceData, invoiceDate: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Vade Tarihi</label>
-                      <Input
-                        type="date"
-                        value={invoiceData.dueDate}
-                        onChange={(e) => setInvoiceData({ ...invoiceData, dueDate: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Müşteri Bilgileri */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Müşteri Bilgileri</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium">Müşteri Adı</label>
-                    <Input
-                      value={invoiceData.customerName}
-                      onChange={(e) => setInvoiceData({ ...invoiceData, customerName: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Adres</label>
-                    <Input
-                      value={invoiceData.customerAddress}
-                      onChange={(e) => setInvoiceData({ ...invoiceData, customerAddress: e.target.value })}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium">Vergi No</label>
-                      <Input
-                        value={invoiceData.customerTaxNo}
-                        onChange={(e) => setInvoiceData({ ...invoiceData, customerTaxNo: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Vergi Dairesi</label>
-                      <Input
-                        value={invoiceData.customerTaxOffice}
-                        onChange={(e) => setInvoiceData({ ...invoiceData, customerTaxOffice: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Sağ Panel - Kalemler */}
-            <div className="space-y-6">
-              {/* Fatura Kalemleri */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Fatura Kalemleri</CardTitle>
-                    <Button size="sm" onClick={addItem}>Kalem Ekle</Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {invoiceData.items.map((item, index) => (
-                      <div key={item.id} className="p-4 border rounded-lg">
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="font-medium">Kalem {index + 1}</span>
-                          {invoiceData.items.length > 1 && (
-                            <Button size="sm" variant="destructive" onClick={() => removeItem(item.id)}>
-                              Sil
-                            </Button>
-                          )}
-                        </div>
-
-                        <div className="space-y-3">
-                          <div>
-                            <label className="text-sm font-medium">Açıklama</label>
-                            <Input
-                              value={item.description}
-                              onChange={(e) => updateItem(item.id, 'description', e.target.value)}
-                              placeholder="Ürün/hizmet açıklaması"
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-3 gap-2">
-                            <div>
-                              <label className="text-sm font-medium">Miktar</label>
-                              <Input
-                                type="number"
-                                value={item.quantity}
-                                onChange={(e) => updateItem(item.id, 'quantity', Number.parseFloat(e.target.value) || 0)}
-                              />
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium">Birim</label>
-                              <select
-                                value={item.unit}
-                                onChange={(e) => updateItem(item.id, 'unit', e.target.value)}
-                                className="w-full p-2 border rounded"
-                              >
-                                <option value="adet">Adet</option>
-                                <option value="kg">Kg</option>
-                                <option value="m">Metre</option>
-                                <option value="m2">m²</option>
-                                <option value="m3">m³</option>
-                                <option value="saat">Saat</option>
-                                <option value="gun">Gün</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium">KDV %</label>
-                              <select
-                                value={item.vatRate}
-                                onChange={(e) => updateItem(item.id, 'vatRate', Number.parseFloat(e.target.value))}
-                                className="w-full p-2 border rounded"
-                              >
-                                <option value={0}>0%</option>
-                                <option value={1}>1%</option>
-                                <option value={8}>8%</option>
-                                <option value={20}>20%</option>
-                              </select>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <label className="text-sm font-medium">Birim Fiyat</label>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                value={item.unitPrice}
-                                onChange={(e) => updateItem(item.id, 'unitPrice', Number.parseFloat(e.target.value) || 0)}
-                            />
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium">Toplam</label>
-                            <Input
-                              value={`₺${item.total.toFixed(2)}`}
-                              disabled
-                              className="bg-gray-50"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Notlar ve Koşullar */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Notlar ve Koşullar</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <input
-                      type="checkbox"
-                      id="showNotes"
-                      checked={invoiceData.showNotes}
-                      onChange={(e) => setInvoiceData({ ...invoiceData, showNotes: e.target.checked })}
-                    />
-                    <label htmlFor="showNotes" className="text-sm font-medium">Notlar</label>
-                  </div>
-                  <textarea
-                    value={invoiceData.notes}
-                    onChange={(e) => setInvoiceData({ ...invoiceData, notes: e.target.value })}
-                    className="w-full p-2 border rounded"
-                    rows={3}
-                    placeholder="Fatura notları..."
-                  />
-                </div>
-
-                <div>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <input
-                      type="checkbox"
-                      id="showPaymentTerms"
-                      checked={invoiceData.showPaymentTerms}
-                      onChange={(e) => setInvoiceData({ ...invoiceData, showPaymentTerms: e.target.checked })}
-                    />
-                    <label htmlFor="showPaymentTerms" className="text-sm font-medium">Ödeme Koşulları</label>
-                  </div>
-                  <textarea
-                    value={invoiceData.paymentTerms}
-                    onChange={(e) => setInvoiceData({ ...invoiceData, paymentTerms: e.target.value })}
-                    className="w-full p-2 border rounded"
-                    rows={2}
-                    placeholder="Ödeme koşulları..."
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Toplam Özeti */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Fatura Özeti</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Ara Toplam:</span>
-                    <span>₺{calculateTotals().subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>KDV:</span>
-                    <span>₺{calculateTotals().vatAmount.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between font-bold text-lg border-t pt-2">
-                    <span>Genel Toplam:</span>
-                    <span>₺{calculateTotals().total.toFixed(2)}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      ) : (
-        /* Önizleme Modu */
-        <div className="bg-gray-100 p-4">
-          <InvoicePreview />
-        </div>
-      )}
-    </div>
-  )
-}
-
-// 3. Dinamik Hakediş Formu
-const CreateHakedisContent = () => (
-  <div>
-    <h2>Hakediş Oluştur</h2>
-    {/* Hakediş oluşturma form elemanları buraya gelecek */}
-  </div>
-)
-
-// 4. Belge Yönetimi
-const DocumentManagementContent = () => (
-  <div>
-    <h2>Belge Yönetimi</h2>
-    {/* Belge yönetimi ile ilgili elemanlar buraya gelecek */}
-  </div>
-)
-
-// Import yeni componentleri ekle
-import { CreateHakedisContent } from "../components/create-hakedis-content"
-import { DocumentManagementContent } from "../components/document-management-content"
-
-// renderContent fonksiyonuna yeni case'leri ekle
-const renderContent = () => {
-  switch (activeModule) {
-    case "dashboard":
-      return <DashboardContent />
-    case "projects":
-      return <ProjectsContent />
-    case "hakedis":
-      return <HakedisContent />
-    case "contractors":
-      return <ContractorsContent />
-    case "attendance":
-      return <AttendanceContent />
-    case "customers":
-      return <CustomersContent />
-    case "inventory":
-      return <InventoryContent />
-    case "invoices":
-      return <InvoicesContent />
-    case "requests":
-      return <RequestsContent />
-    case "cash":
-      return <CashContent />
-    case "bank":
-      return <BankContent />
-    case "checks":
-      return <ChecksContent />
-    case "accounting":
-      return <AccountingContent />
-    case "assets":
-      return <AssetsContent />
-    case "reports":
-      return <ReportsContent />
-    case "daily-attendance":
-      return <DailyAttendanceContent />
-    case "create-invoice":
-      return <CreateInvoiceContent />
-    case "create-hakedis":
-      return <CreateHakedisContent />
-    case "document-management":
-      return <DocumentManagementContent />
-    default:
-      return (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <h3 className="text-lg font-medium">Bu modül henüz geliştirilmekte</h3>
-            <p className="text-muted-foreground">Yakında kullanıma sunulacak</p>
-          </div>
-        </div>
-      )
-  }
-}
 
   // Cari Hesap Modülü
   const CustomersContent = () => (
@@ -2728,7 +1709,7 @@ const renderContent = () => {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">KDV Borcu</CardHeader>
+            <CardTitle className="text-sm font-medium">KDV Borcu</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">₺95,400</div>
@@ -2848,7 +1829,7 @@ const renderContent = () => {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Toplam Kıymet</CardHeader>
+            <CardTitle className="text-sm font-medium">Toplam Kıymet</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">₺8.5M</div>
@@ -3877,4 +2858,346 @@ const renderContent = () => {
                   {selectedDataSource && (
                     <Card>
                       <CardHeader>
-                        <\
+                        <CardTitle>2. Alanlar</CardTitle>
+                        <CardDescription>Hangi alanları görmek istiyorsunuz?</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {dataSources[selectedDataSource].fields.map((field) => (
+                            <div key={field.key} className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id={field.key}
+                                checked={selectedFields.includes(field.key)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedFields([...selectedFields, field.key])
+                                  } else {
+                                    setSelectedFields(selectedFields.filter((f) => f !== field.key))
+                                  }
+                                }}
+                                className="rounded"
+                              />
+                              <label htmlFor={field.key} className="text-sm">
+                                {field.label} ({field.type})
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Grafik Türü */}
+                  {selectedFields.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>3. Görselleştirme</CardTitle>
+                        <CardDescription>Nasıl görüntülemek istiyorsunuz?</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 gap-2">
+                          {chartTypes.map((type) => (
+                            <Button
+                              key={type.value}
+                              variant={chartType === type.value ? "default" : "outline"}
+                              onClick={() => setChartType(type.value)}
+                              className="justify-start"
+                            >
+                              <span className="mr-2">{type.icon}</span>
+                              {type.label}
+                            </Button>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Filtreleme */}
+                  {selectedDataSource && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>4. Filtreler</CardTitle>
+                        <CardDescription>Verileri filtrelemek istiyorsanız</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {dataSources[selectedDataSource].fields
+                            .filter((field) => field.type === "text")
+                            .map((field) => (
+                              <div key={field.key}>
+                                <label className="text-sm font-medium">{field.label}</label>
+                                <Input
+                                  placeholder={`${field.label} filtresi...`}
+                                  value={filters[field.key] || ""}
+                                  onChange={(e) => setFilters({ ...filters, [field.key]: e.target.value })}
+                                />
+                              </div>
+                            ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Gruplama */}
+                  {selectedDataSource && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>5. Gruplama</CardTitle>
+                        <CardDescription>Verileri gruplamak istiyorsanız</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <select
+                          value={groupBy}
+                          onChange={(e) => setGroupBy(e.target.value)}
+                          className="w-full p-2 border rounded"
+                        >
+                          <option value="">Gruplama yok</option>
+                          {dataSources[selectedDataSource].fields
+                            .filter((field) => field.type === "text")
+                            .map((field) => (
+                              <option key={field.key} value={field.key}>
+                                {field.label}
+                              </option>
+                            ))}
+                        </select>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+
+                {/* Sağ Panel - Önizleme */}
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Önizleme</CardTitle>
+                      <CardDescription>
+                        {selectedDataSource ? dataSources[selectedDataSource].name : "Veri kaynağı seçiniz"}
+                        {selectedFields.length > 0 && ` - ${selectedFields.length} alan seçili`}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {selectedDataSource && selectedFields.length > 0 ? (
+                        <div className="w-full overflow-x-auto">{renderChart()}</div>
+                      ) : (
+                        <div className="flex items-center justify-center h-64 text-muted-foreground">
+                          Veri kaynağı ve alanları seçerek başlayın
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Veri Özeti */}
+                  {selectedDataSource && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Veri Özeti</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-muted-foreground">Toplam Kayıt:</span>
+                            <p className="font-medium">{processData().length}</p>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Seçili Alan:</span>
+                            <p className="font-medium">{selectedFields.length}</p>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Grafik Türü:</span>
+                            <p className="font-medium">{chartTypes.find((t) => t.value === chartType)?.label}</p>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Filtre:</span>
+                            <p className="font-medium">{Object.keys(filters).filter((k) => filters[k]).length} aktif</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* Tam Ekran Önizleme */
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>
+                        {selectedDataSource ? dataSources[selectedDataSource].name : "Rapor"} Analizi
+                      </CardTitle>
+                      <CardDescription>
+                        {selectedFields.length} alan • {chartTypes.find((t) => t.value === chartType)?.label}
+                      </CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Rapor adı..."
+                        value={reportName}
+                        onChange={(e) => setReportName(e.target.value)}
+                        className="w-48"
+                      />
+                      <Button variant="outline">PDF İndir</Button>
+                      <Button variant="outline">Excel İndir</Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="w-full">{renderChart()}</div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Kaydedilmiş Raporlar */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Kaydedilmiş Raporlar</CardTitle>
+                <CardDescription>Daha önce oluşturduğunuz raporlar</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-3">
+                  {[
+                    { name: "Proje İlerleme Raporu", source: "Projeler", type: "Bar Grafik", date: "15.11.2024" },
+                    { name: "Hakediş Analizi", source: "Hakediş", type: "Çizgi Grafik", date: "14.11.2024" },
+                    { name: "Stok Durumu", source: "Stok", type: "Pasta Grafik", date: "13.11.2024" },
+                  ].map((report, index) => (
+                    <div key={index} className="p-4 border rounded-lg">
+                      <h4 className="font-medium">{report.name}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {report.source} • {report.type}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">{report.date}</p>
+                      <div className="flex gap-2 mt-3">
+                        <Button size="sm" variant="outline">
+                          Aç
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          Düzenle
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  const renderContent = () => {
+    switch (activeModule) {
+      case "dashboard":
+        return <DashboardContent />
+      case "projects":
+        return <ProjectsContent />
+      case "hakedis":
+        return <HakedisContent />
+      case "contractors":
+        return <ContractorsContent />
+      case "attendance":
+        return <AttendanceContent />
+      case "customers":
+        return <CustomersContent />
+      case "inventory":
+        return <InventoryContent />
+      case "invoices":
+        return <InvoicesContent />
+      case "requests":
+        return <RequestsContent />
+      case "cash":
+        return <CashContent />
+      case "bank":
+        return <BankContent />
+      case "checks":
+        return <ChecksContent />
+      case "accounting":
+        return <AccountingContent />
+      case "assets":
+        return <AssetsContent />
+      case "reports":
+        return <ReportsContent />
+      default:
+        return (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <h3 className="text-lg font-medium">Bu modül henüz geliştirilmekte</h3>
+              <p className="text-muted-foreground">Yakında kullanıma sunulacak</p>
+            </div>
+          </div>
+        )
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 items-center">
+          <div className="mr-4 hidden md:flex">
+            <Building2 className="h-6 w-6 text-blue-600" />
+            <span className="ml-2 font-bold">İnşaat ERP</span>
+          </div>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-64">
+              <Sidebar />
+            </SheetContent>
+          </Sheet>
+          <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+            <div className="w-full flex-1 md:w-auto md:flex-none">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input type="search" placeholder="Ara..." className="pl-8 md:w-[300px] lg:w-[400px]" />
+              </div>
+            </div>
+            <Button variant="ghost" size="icon">
+              <Bell className="h-4 w-4" />
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src="/placeholder.svg" alt="@user" />
+                    <AvatarFallback>AD</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">Admin User</p>
+                    <p className="text-xs leading-none text-muted-foreground">admin@insaat-erp.com</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Ayarlar</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <span>Çıkış Yap</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </header>
+
+      <div className="flex">
+        {/* Sidebar */}
+        <aside className="hidden w-64 border-r bg-background md:block">
+          <Sidebar />
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 p-6">{renderContent()}</main>
+      </div>
+    </div>
+  )
+}
